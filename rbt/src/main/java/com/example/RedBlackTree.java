@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 public class RedBlackTree extends AbstractTree {
     private static final Logger logger = LoggerFactory.getLogger(RedBlackTree.class);
-    private static final boolean VALIDATE = false;
+    //private static final boolean VALIDATE = false;
 
     @Override
     public boolean insert(int v) {
@@ -32,7 +32,7 @@ public class RedBlackTree extends AbstractTree {
         size++;
         fixAfterInsertion(z);
 
-        if (VALIDATE) Validator.check(this);
+        //if (VALIDATE) Validator.check(this);
         return true;
     }
 
@@ -102,8 +102,125 @@ public class RedBlackTree extends AbstractTree {
         y.parent = x;
     }
 
-    @Override
+@Override
     public boolean delete(int v) {
-        return false;
+        Node z = search(root, v);
+        if (z == null) return false;
+
+        Node x, y;
+        y = z;
+        boolean yOriginalColorIsRed = y.isRed;
+
+        if (z.left == null) {
+            x = z.right;
+            transplant(z, z.right);
+        } else if (z.right == null) {
+            x = z.left;
+            transplant(z, z.left);
+        } else {
+            y = minimum(z.right);
+            yOriginalColorIsRed = y.isRed;
+            x = y.right;
+            if (y.parent == z) {
+                if (x != null) x.parent = y;
+            } else {
+                transplant(y, y.right);
+                y.right = z.right;
+                if (y.right != null) y.right.parent = y;
+            }
+            transplant(z, y);
+            y.left = z.left;
+            if (y.left != null) y.left.parent = y;
+            y.isRed = z.isRed;
+        }
+
+        size--;
+        
+        if (!yOriginalColorIsRed) {
+            fixAfterDeletion(x, (x != null) ? x.parent : y.parent);
+        }
+
+        return true;
     }
+
+    private void fixAfterDeletion(Node x, Node parent) {
+        while (x != root && parent != null && (x == null || !x.isRed)) {
+            if (x == parent.left) {
+                Node s = parent.right; 
+                if (isRed(s)) {
+                    s.isRed = false;
+                    parent.isRed = true;
+                    rotateLeft(parent);
+                    s = parent.right;
+                }
+                if (!isRed(getLeft(s)) && !isRed(getRight(s))) {
+                    if (s != null) s.isRed = true;
+                    x = parent;
+                    parent = x.parent;
+                } else {
+                    if (!isRed(getRight(s))) {
+                        if (getLeft(s) != null) getLeft(s).isRed = false;
+                        if (s != null) s.isRed = true;
+                        rotateRight(s);
+                        s = parent.right;
+                    }
+                    if (s != null) s.isRed = parent.isRed;
+                    parent.isRed = false;
+                    if (getRight(s) != null) getRight(s).isRed = false;
+                    rotateLeft(parent);
+                    x = root;
+                }
+            } else {
+                Node s = parent.left;
+                if (isRed(s)) {
+                    s.isRed = false;
+                    parent.isRed = true;
+                    rotateRight(parent);
+                    s = parent.left;
+                }
+                if (!isRed(getRight(s)) && !isRed(getLeft(s))) {
+                    if (s != null) s.isRed = true;
+                    x = parent;
+                    parent = x.parent;
+                } else {
+                    if (!isRed(getLeft(s))) {
+                        if (getRight(s) != null) getRight(s).isRed = false;
+                        if (s != null) s.isRed = true;
+                        rotateLeft(s);
+                        s = parent.left;
+                    }
+                    if (s != null) s.isRed = parent.isRed;
+                    parent.isRed = false;
+                    if (getLeft(s) != null) getLeft(s).isRed = false;
+                    rotateRight(parent);
+                    x = root;
+                }
+            }
+        }
+        if (x != null) x.isRed = false;
+    }
+
+    private boolean isRed(Node n) { return n != null && n.isRed; }
+    private Node getLeft(Node n) { return (n == null) ? null : n.left; }
+    private Node getRight(Node n) { return (n == null) ? null : n.right; }
+
+    private void transplant(Node u, Node v) {
+        if (u.parent == null) root = v;
+        else if (u == u.parent.left) u.parent.left = v;
+        else u.parent.right = v;
+        if (v != null) v.parent = u.parent;
+    }
+
+    private Node search(Node node, int v) {
+        while (node != null && v != node.data) {
+            node = (v < node.data) ? node.left : node.right;
+        }
+        return node;
+    }
+
+    private Node minimum(Node node) {
+        while (node.left != null) node = node.left;
+        return node;
+    }
+
 }

@@ -74,4 +74,5 @@ public class SimpleBST extends AbstractTree {
         }
         return minv;
     }
+    
 }
