@@ -3,9 +3,11 @@ package com.example;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class RedBlackTree extends AbstractTree {
+    
     private static final Logger logger = LoggerFactory.getLogger(RedBlackTree.class);
-    //private static final boolean VALIDATE = false;
+    private static final boolean VALIDATE = false;
 
     @Override
     public boolean insert(int v) {
@@ -32,7 +34,7 @@ public class RedBlackTree extends AbstractTree {
         size++;
         fixAfterInsertion(z);
 
-        //if (VALIDATE) Validator.check(this);
+        if (VALIDATE) Validator.check(this);
         return true;
     }
 
@@ -221,6 +223,34 @@ public class RedBlackTree extends AbstractTree {
     private Node minimum(Node node) {
         while (node.left != null) node = node.left;
         return node;
+    }
+
+    public static class Validator {
+        public static void check(RedBlackTree tree) {
+            if (tree.root == null) return;
+            if (tree.root.isRed) throw new IllegalStateException("Root must be black");
+            checkBlackHeight(tree.root);
+            checkRedNodes(tree.root);
+        }
+
+        private static int checkBlackHeight(Node node) {
+            if (node == null) return 1;
+            int leftH = checkBlackHeight(node.left);
+            int rightH = checkBlackHeight(node.right);
+            if (leftH != rightH) throw new IllegalStateException("Black height mismatch");
+            return leftH + (node.isRed ? 0 : 1);
+        }
+
+        private static void checkRedNodes(Node node) {
+            if (node == null) return;
+            if (node.isRed) {
+                if ((node.left != null && node.left.isRed) || (node.right != null && node.right.isRed)) {
+                    throw new IllegalStateException("Double red violation");
+                }
+            }
+            checkRedNodes(node.left);
+            checkRedNodes(node.right);
+        }
     }
 
 }

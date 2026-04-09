@@ -1,0 +1,5 @@
+javac -cp ".:lib/slf4j-api-2.0.7.jar:lib/slf4j-simple-2.0.7.jar" $(find src/main -name "*.java")
+
+java -Xss4m -cp "src/main/java:lib/slf4j-api-2.0.7.jar:lib/slf4j-simple-2.0.7.jar" com.example.Main
+
+mvn clean test
